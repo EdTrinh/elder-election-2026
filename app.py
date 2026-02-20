@@ -115,26 +115,36 @@ else:
     winner = max(st.session_state.scores, key=st.session_state.scores.get)
     top_sect = max(st.session_state.sect_scores, key=st.session_state.sect_scores.get)
     
-    res_map = {"A": "NADIA CLANCY (Lao Động)", "B": "SHAWN VAN GROESEN (Tự Do)", "C": "MATTHEW MANGELSDORF (One Nation)", "D": "STEF ROZITIS (Đảng Xanh)"}
+    res_map = {
+        "A": "NADIA CLANCY (Lao Động)", 
+        "B": "SHAWN VAN GROESEN (Tự Do)", 
+        "C": "MATTHEW MANGELSDORF (One Nation)", 
+        "D": "STEF ROZITIS (Đảng Xanh)"
+    }
     
-    st.header("✨ Kết quả dành cho Ba Mẹ")
-    st.success(f"### Ứng cử viên phù hợp nhất: {res_map[winner]}")
-    st.info(f"💡 Ba mẹ quan tâm nhiều nhất đến chủ đề: **{top_sect}**")
-    
-    st.subheader("📊 Chi tiết quan điểm:")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write("**Theo Đảng:**")
-        st.bar_chart({"Số câu": list(st.session_state.scores.values())}, x_label=["Lao Động", "Tự Do", "One Nation", "Đảng Xanh"])
-    with col2:
-        st.write("**Theo Chủ đề:**")
-        st.write(f"- Kinh tế: {st.session_state.sect_scores['Kinh tế']} câu")
-        st.write(f"- An ninh: {st.session_state.sect_scores['An ninh']} câu")
-        st.write(f"- Môi trường: {st.session_state.sect_scores['Môi trường']} câu")
+    st.markdown("---")
+    st.header("🏁 Kết quả khảo sát của Ba Mẹ")
 
-    if st.button("Làm lại khảo sát"):
-        st.session_state.current_q = 0
-        st.session_state.scores = {"A": 0, "B": 0, "C": 0, "D": 0}
-        st.session_state.sect_scores = {"Kinh tế": 0, "An ninh": 0, "Môi trường": 0}
-        st.session_state.history = []
-        st.rerun()
+    # Use Columns to make the text and chart visible together
+    col_text, col_chart = st.columns([1, 1])
+
+    with col_text:
+        st.subheader("💡 Gợi ý cho Ba Mẹ")
+        # st.metric makes the result big and bold
+        st.metric(label="Ứng cử viên phù hợp", value=res_map[winner])
+        st.write(f"Chủ đề ba mẹ quan tâm nhất: **{top_sect}**")
+        
+        st.info(f"Dựa trên 30 câu trả lời, quan điểm của ba mẹ gần gũi nhất với cương lĩnh của {res_map[winner]}.")
+
+    with col_chart:
+        st.subheader("📊 Biểu đồ phân tích")
+        # Prepare data for a cleaner bar chart
+        chart_data = {
+            "Đảng": ["Lao Động", "Tự Do", "One Nation", "Đảng Xanh"],
+            "Điểm": [st.session_state.scores["A"], st.session_state.scores["B"], 
+                     st.session_state.scores["C"], st.session_state.scores["D"]]
+        }
+        st.bar_chart(data=chart_data, x="Đảng", y="Điểm", color="Đảng")
+
+    st.markdown("---")
+
