@@ -116,35 +116,45 @@ else:
     top_sect = max(st.session_state.sect_scores, key=st.session_state.sect_scores.get)
     
     res_map = {
-        "A": "NADIA CLANCY (Lao Động)", 
-        "B": "SHAWN VAN GROESEN (Tự Do)", 
-        "C": "MATTHEW MANGELSDORF (One Nation)", 
-        "D": "STEF ROZITIS (Đảng Xanh)"
+        "A": "NADIA CLANCY (Đảng Lao Động - Labor)", 
+        "B": "SHAWN VAN GROESEN (Đảng Tự Do - Liberal)", 
+        "C": "MATTHEW MANGELSDORF (Đảng One Nation)", 
+        "D": "STEF ROZITIS (Đảng Xanh - Greens)"
     }
     
     st.markdown("---")
     st.header("🏁 Kết quả khảo sát của Ba Mẹ")
 
-    # Use Columns to make the text and chart visible together
-    col_text, col_chart = st.columns([1, 1])
-
-    with col_text:
-        st.subheader("💡 Gợi ý cho Ba Mẹ")
-        # st.metric makes the result big and bold
-        st.metric(label="Ứng cử viên phù hợp", value=res_map[winner])
-        st.write(f"Chủ đề ba mẹ quan tâm nhất: **{top_sect}**")
-        
-        st.info(f"Dựa trên 30 câu trả lời, quan điểm của ba mẹ gần gũi nhất với cương lĩnh của {res_map[winner]}.")
-
-    with col_chart:
-        st.subheader("📊 Biểu đồ phân tích")
-        # Prepare data for a cleaner bar chart
-        chart_data = {
-            "Đảng": ["Lao Động", "Tự Do", "One Nation", "Đảng Xanh"],
-            "Điểm": [st.session_state.scores["A"], st.session_state.scores["B"], 
-                     st.session_state.scores["C"], st.session_state.scores["D"]]
-        }
-        st.bar_chart(data=chart_data, x="Đảng", y="Điểm", color="Đảng")
+    # 1. Big Bold Result (Metric)
+    st.subheader("💡 Gợi ý ứng cử viên")
+    st.metric(label="Người phù hợp nhất", value=res_map[winner])
+    
+    # 2. Section Analysis (Text)
+    st.info(f"Dựa trên 30 câu trả lời, ba mẹ quan tâm nhiều nhất đến chủ đề: **{top_sect}**")
+    st.write(f"Quan điểm của ba mẹ gần gũi nhất với cương lĩnh của {res_map[winner]}.")
 
     st.markdown("---")
 
+    # 3. Data Visualization (Full width chart)
+    st.subheader("📊 Biểu đồ phân tích chi tiết")
+    chart_data = {
+        "Đảng": ["Lao Động", "Tự Do", "One Nation", "Đảng Xanh"],
+        "Số câu chọn": [
+            st.session_state.scores["A"], 
+            st.session_state.scores["B"], 
+            st.session_state.scores["C"], 
+            st.session_state.scores["D"]
+        ]
+    }
+    # x="Đảng" ensures the labels are clearly visible on the horizontal axis
+    st.bar_chart(data=chart_data, x="Đảng", y="Số câu chọn", color="Đảng")
+
+    st.markdown("---")
+    
+    # Reset button at the very bottom
+    if st.button("Làm lại khảo sát từ đầu"):
+        st.session_state.current_q = 0
+        st.session_state.scores = {"A": 0, "B": 0, "C": 0, "D": 0}
+        st.session_state.sect_scores = {"Kinh tế": 0, "An ninh": 0, "Môi trường": 0}
+        st.session_state.history = []
+        st.rerun()
