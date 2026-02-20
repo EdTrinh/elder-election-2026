@@ -1,7 +1,7 @@
 import streamlit as st
 
 # --- PAGE CONFIGURATION ---
-st.set_page_config(page_title="Elder 2026 Election Survey", page_icon="🗳️", layout="centered")
+st.set_page_config(page_title="Khảo sát Bầu cử Elder 2026", page_icon="🗳️", layout="centered")
 
 # --- CUSTOM CSS FOR SENIORS ---
 st.markdown("""
@@ -16,11 +16,10 @@ st.markdown("""
         border: 1px solid #dcdde1;
         transition: all 0.3s;
     }
-    /* Specific Colors for Parties */
-    div.stButton > button:first-child { border-left: 10px solid #ff4d4d; } /* A - Labor */
-    div.stButton > button:nth-child(2) { border-left: 10px solid #3399ff; } /* B - Liberal */
-    div.stButton > button:nth-child(3) { border-left: 10px solid #ffcc00; } /* C - One Nation */
-    div.stButton > button:nth-child(4) { border-left: 10px solid #33cc33; } /* D - Greens */
+    div.stButton > button:first-child { border-left: 10px solid #ff4d4d; } 
+    div.stButton > button:nth-child(2) { border-left: 10px solid #3399ff; } 
+    div.stButton > button:nth-child(3) { border-left: 10px solid #ffcc00; } 
+    div.stButton > button:nth-child(4) { border-left: 10px solid #33cc33; } 
     
     .question-text {
         font-size: 26px !important;
@@ -28,9 +27,6 @@ st.markdown("""
         font-weight: bold;
         color: #2c3e50;
         margin-bottom: 25px;
-    }
-    .stProgress > div > div > div > div {
-        background-color: #3498db;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -40,152 +36,105 @@ if 'current_q' not in st.session_state:
     st.session_state.current_q = 0
     st.session_state.scores = {"A": 0, "B": 0, "C": 0, "D": 0}
     st.session_state.history = []
+    # Track scores per section
+    st.session_state.sect_scores = {"Kinh tế": 0, "An ninh": 0, "Môi trường": 0}
 
 # --- DATABASE: ALL 30 QUESTIONS ---
 questions = [
-    # KINH TẾ (ECONOMY)
-    {"q": "Chính phủ có nên trợ cấp tiền hằng tháng (UBI) nếu máy móc thay thế việc làm của con người?", 
-     "opts": {"A": "Có, để đảm bảo cuộc sống cơ bản", "B": "Không, nên giảm thuế để doanh nghiệp tự tạo việc làm", "C": "Chỉ trợ cấp cho công dân lâu năm", "D": "Có, và phải đánh thuế các công ty sử dụng robot"}},
-    {"q": "Ba mẹ nghĩ sao về việc bỏ ưu đãi thuế cho người sở hữu rất nhiều nhà đất (Negative Gearing)?", 
-     "opts": {"A": "Đồng ý, để dùng tiền đó xây bệnh viện", "B": "Không đồng ý, để khuyến khích người dân đầu tư", "C": "Chỉ áp dụng với các công ty địa ốc lớn", "D": "Rất đồng ý, để hạ giá nhà cho người nghèo"}},
-    {"q": "Cách tốt nhất để giảm giá hóa đơn điện và thực phẩm cho gia đình là gì?", 
-     "opts": {"A": "Chính phủ trực tiếp hỗ trợ tiền điện", "B": "Cắt giảm chi tiêu chính phủ để giảm lạm phát", "C": "Ưu tiên giữ hàng hóa sản xuất tại Úc để dùng trong nước", "D": "Kiểm soát giá trần tại các siêu thị lớn như Coles/Woolies"}},
-    {"q": "Chính phủ có nên trực tiếp xây nhà xã hội và cho thuê với giá rẻ không?", 
-     "opts": {"A": "Có, chính phủ nên quản lý việc nhà ở", "B": "Không, nên để thị trường tự do cạnh tranh", "C": "Có, nhưng chỉ dành cho người gốc Úc", "D": "Có, và phải xây thật nhiều để ai cũng có chỗ ở"}},
-    {"q": "Khi các ngân hàng lớn có lợi nhuận quá cao, họ nên làm gì?", 
-     "opts": {"A": "Đóng thêm thuế để đầu tư vào hạ tầng", "B": "Được giữ lại để tái đầu tư vào kinh tế", "C": "Phải giảm lãi suất cho vay cho người dân", "D": "Chia sẻ lợi nhuận cho các quỹ cộng đồng"}},
-    {"q": "Làm sao giúp người trẻ mua được căn nhà đầu tiên?", 
-     "opts": {"A": "Chính phủ hỗ trợ tiền đặt cọc nhà", "B": "Cắt giảm thuế trước bạ và thủ tục", "C": "Ngừng cho người nước ngoài mua đất tại Úc", "D": "Đóng băng giá nhà và giới hạn số nhà một người được sở hữu"}},
-    {"q": "Học nghề (TAFE) và Đại học có nên được hoàn toàn miễn phí?", 
-     "opts": {"A": "Nên miễn phí cho các ngành nghề ưu tiên", "B": "Mọi người nên đóng góp một phần học phí", "C": "Chỉ miễn phí cho công dân Úc chính gốc", "D": "Tất cả giáo dục phải miễn phí cho mọi người"}},
-    {"q": "Tiền hưu bổng (Super) nên được sử dụng như thế nào?", 
-     "opts": {"A": "Chính phủ đóng thêm cho người thu nhập thấp", "B": "Cho phép rút sớm để mua nhà đầu tiên", "C": "Giữ nguyên để bảo đảm cuộc sống tuổi già", "D": "Tăng mức đóng góp bắt buộc từ các tập đoàn"}},
-    {"q": "Có nên áp đặt giới hạn tăng tiền thuê nhà (Rent caps)?", 
-     "opts": {"A": "Có, để bảo vệ người đi thuê nhà", "B": "Không, sẽ làm chủ nhà không muốn sửa chữa nhà", "C": "Chỉ áp dụng cho các căn hộ chung cư lớn", "D": "Dừng việc tăng tiền thuê ngay lập tức"}},
-    {"q": "Chính phủ nên làm gì với các khoản nợ quốc gia?", 
-     "opts": {"A": "Vay thêm nếu cần đầu tư cho giáo dục/y tế", "B": "Phải trả nợ nhanh chóng dù phải cắt giảm chi tiêu", "C": "Chỉ vay cho các dự án quốc phòng", "D": "Ưu tiên an sinh xã hội, không nên quá lo lắng về nợ"}},
+    # KINH TẾ (1-10)
+    {"cat": "Kinh tế", "q": "Chính phủ có nên trợ cấp tiền hằng tháng (UBI) nếu máy móc thay thế việc làm của con người?", "opts": {"A": "Có, để đảm bảo cuộc sống cơ bản", "B": "Không, nên giảm thuế tạo việc làm", "C": "Chỉ trợ cấp cho công dân lâu năm", "D": "Có, và đánh thuế các công ty robot"}},
+    {"cat": "Kinh tế", "q": "Ba mẹ nghĩ sao về việc bỏ ưu đãi thuế cho người sở hữu nhiều nhà đất (Negative Gearing)?", "opts": {"A": "Đồng ý, để dùng tiền xây bệnh viện", "B": "Không đồng ý, khuyến khích đầu tư", "C": "Chỉ áp dụng với công ty địa ốc lớn", "D": "Rất đồng ý, hạ giá nhà cho người nghèo"}},
+    {"cat": "Kinh tế", "q": "Cách tốt nhất để giảm giá hóa đơn điện và thực phẩm cho gia đình là gì?", "opts": {"A": "Chính phủ trực tiếp hỗ trợ tiền điện", "B": "Cắt giảm chi tiêu chính phủ để giảm lạm phát", "C": "Ưu tiên giữ hàng hóa sản xuất tại Úc", "D": "Kiểm soát giá trần tại các siêu thị lớn"}},
+    {"cat": "Kinh tế", "q": "Chính phủ có nên trực tiếp xây nhà xã hội và cho thuê với giá rẻ không?", "opts": {"A": "Có, chính phủ nên quản lý nhà ở", "B": "Không, để thị trường tự do cạnh tranh", "C": "Có, nhưng chỉ dành cho người gốc Úc", "D": "Có, và phải xây thật nhiều cho mọi người"}},
+    {"cat": "Kinh tế", "q": "Khi các ngân hàng lớn có lợi nhuận quá cao, họ nên làm gì?", "opts": {"A": "Đóng thêm thuế đầu tư hạ tầng", "B": "Được giữ lại để tái đầu tư kinh tế", "C": "Phải giảm lãi suất cho vay cho dân", "D": "Chia sẻ lợi nhuận cho quỹ cộng đồng"}},
+    {"cat": "Kinh tế", "q": "Làm sao giúp người trẻ mua được căn nhà đầu tiên?", "opts": {"A": "Chính phủ hỗ trợ tiền đặt cọc nhà", "B": "Cắt giảm thuế trước bạ và thủ tục", "C": "Ngừng cho người nước ngoài mua đất", "D": "Đóng băng giá nhà và giới hạn sở hữu"}},
+    {"cat": "Kinh tế", "q": "Học nghề (TAFE) và Đại học có nên được hoàn toàn miễn phí?", "opts": {"A": "Nên miễn phí cho các ngành ưu tiên", "B": "Mọi người nên đóng một phần học phí", "C": "Chỉ miễn phí cho công dân Úc chính gốc", "D": "Tất cả giáo dục phải miễn phí"}},
+    {"cat": "Kinh tế", "q": "Tiền hưu bổng (Super) nên được sử dụng như thế nào?", "opts": {"A": "Chính phủ đóng thêm cho người thu nhập thấp", "B": "Cho phép rút sớm để mua nhà", "C": "Giữ nguyên bảo đảm tuổi già", "D": "Tăng đóng góp bắt buộc từ các tập đoàn"}},
+    {"cat": "Kinh tế", "q": "Có nên áp đặt giới hạn tăng tiền thuê nhà (Rent caps)?", "opts": {"A": "Có, để bảo vệ người đi thuê nhà", "B": "Không, làm chủ nhà không muốn sửa nhà", "C": "Chỉ áp dụng cho các căn hộ lớn", "D": "Dừng việc tăng tiền thuê ngay lập tức"}},
+    {"cat": "Kinh tế", "q": "Chính phủ nên làm gì với các khoản nợ quốc gia?", "opts": {"A": "Vay thêm nếu cần đầu tư y tế/giáo dục", "B": "Phải trả nợ nhanh dù phải cắt chi tiêu", "C": "Chỉ vay cho các dự án quốc phòng", "D": "Ưu tiên an sinh xã hội, không lo nợ"}},
 
-    # AN NINH & TRUYỀN THỐNG (SECURITY & TRADITION)
-    {"q": "Làm sao để khu phố Elder an toàn hơn trước các vụ trộm cắp?", 
-     "opts": {"A": "Đầu tư vào các câu lạc bộ thanh thiếu niên", "B": "Tăng thêm cảnh sát tuần tra", "C": "Áp dụng hình phạt tù nghiêm khắc hơn", "D": "Cải thiện đời sống người nghèo để bớt tội phạm"}},
-    {"q": "Chính phủ nên ưu tiên đối tượng nhập cư nào?", 
-     "opts": {"A": "Những người có kỹ năng về y tế và công nghệ", "B": "Những người lao động tay nghề cao theo nhu cầu doanh nghiệp", "C": "Nên giảm bớt người nhập cư để giữ gìn bản sắc", "D": "Chào đón tất cả những ai có thiện chí đóng góp"}},
-    {"q": "Quan điểm của ba mẹ về những người tị nạn đến Úc bằng thuyền?", 
-     "opts": {"A": "Nên xét duyệt định cư dựa trên lòng nhân đạo", "B": "Cần kiểm tra an ninh thật nghiêm ngặt", "C": "Kiên quyết yêu cầu tàu quay trở lại", "D": "Chào đón và cung cấp nơi ở ngay lập tức"}},
-    {"q": "Trẻ em ở trường nên tập trung học điều gì nhất?", 
-     "opts": {"A": "Sự bao dung và tôn trọng các nền văn hóa", "B": "Các kỹ năng thực tế về tài chính và khoa học", "C": "Lòng tự hào về lịch sử và truyền thống nước Úc", "D": "Ý thức bảo vệ môi trường và bình đẳng giới"}},
-    {"q": "Chính phủ có nên có quyền kiểm tra tin nhắn mạng để bắt tội phạm?", 
-     "opts": {"A": "Không, quyền riêng tư là quan trọng nhất", "B": "Có, nếu việc đó giúp bảo vệ cộng đồng", "C": "Có, trật tự và an ninh là trên hết", "D": "Không, chính phủ không nên can thiệp vào đời sống dân"}},
-    {"q": "Có nên dành cho người Bản địa một tiếng nói riêng trong quốc hội (The Voice)?", 
-     "opts": {"A": "Có, để tôn trọng những người chủ đầu tiên của đất nước", "B": "Không, mọi người dân Úc nên được đối xử công bằng như nhau", "C": "Không, nên tập trung vào việc thực tế thay vì hình thức", "D": "Rất cần thiết để họ có quyền tự quyết định tương lai"}},
-    {"q": "Nên xử lý các vấn đề về chất gây nghiện như thế nào?", 
-     "opts": {"A": "Coi là vấn đề y tế và cần hỗ trợ cai nghiện", "B": "Giữ nguyên lệnh cấm nhưng không nên phạt quá nặng", "C": "Phải phạt tù thật nặng để răn đe", "D": "Hợp pháp hóa và quản lý chặt chẽ như thuốc lá/rượu"}},
-    {"q": "Chính phủ có nên bảo vệ các giá trị gia đình truyền thống?", 
-     "opts": {"A": "Không, chính phủ không nên can thiệp vào lựa chọn cá nhân", "B": "Nên hỗ trợ tất cả các loại hình gia đình", "C": "Có, gia đình truyền thống là nền tảng xã hội", "D": "Nên tôn trọng sự đa dạng, không chỉ gia đình truyền thống"}},
-    {"q": "Có nên lắp đặt thêm nhiều camera giám sát (CCTV) ở nơi công cộng?", 
-     "opts": {"A": "Không, làm người dân cảm thấy không thoải mái", "B": "Có, giúp cảnh sát phá án nhanh hơn", "C": "Có, cần thiết để giữ gìn kỷ cương", "D": "Không, camera không giải quyết được gốc rễ tội phạm"}},
-    {"q": "Lịch sử nước Úc nên được giảng dạy theo hướng nào?", 
-     "opts": {"A": "Nhìn nhận khách quan cả những mặt tối trong quá khứ", "B": "Tập trung vào những thành tựu xây dựng đất nước", "C": "Giảng dạy về lòng yêu nước và sự hy sinh", "D": "Ưu tiên giảng dạy về lịch sử của người Bản địa"}},
+    # AN NINH & TRUYỀN THỐNG (11-20)
+    {"cat": "An ninh", "q": "Làm sao để khu phố Elder an toàn hơn trước các vụ trộm cắp?", "opts": {"A": "Đầu tư vào giáo dục thanh thiếu niên", "B": "Tăng thêm cảnh sát tuần tra", "C": "Áp dụng hình phạt tù nghiêm khắc hơn", "D": "Cải thiện đời sống người nghèo"}},
+    {"cat": "An ninh", "q": "Chính phủ nên ưu tiên đối tượng nhập cư nào?", "opts": {"A": "Người có kỹ năng y tế và công nghệ", "B": "Người lao động tay nghề cao theo nhu cầu", "C": "Nên giảm bớt người nhập cư giữ bản sắc", "D": "Chào đón tất cả ai có thiện chí đóng góp"}},
+    {"cat": "An ninh", "q": "Quan điểm của ba mẹ về những người tị nạn đến Úc bằng thuyền?", "opts": {"A": "Xét duyệt dựa trên lòng nhân đạo", "B": "Cần kiểm tra an ninh thật nghiêm ngặt", "C": "Kiên quyết yêu cầu tàu quay trở lại", "D": "Chào đón và hỗ trợ nơi ở ngay"}},
+    {"cat": "An ninh", "q": "Trẻ em ở trường nên tập trung học điều gì nhất?", "opts": {"A": "Sự bao dung và tôn trọng đa văn hóa", "B": "Kỹ năng tài chính và khoa học", "C": "Lòng tự hào về lịch sử và truyền thống", "D": "Ý thức bảo vệ môi trường và bình đẳng"}},
+    {"cat": "An ninh", "q": "Chính phủ có nên quyền kiểm tra tin nhắn mạng để bắt tội phạm?", "opts": {"A": "Không, quyền riêng tư là quan trọng nhất", "B": "Có, nếu giúp bảo vệ cộng đồng", "C": "Có, trật tự và an ninh là trên hết", "D": "Không, chính phủ không nên can thiệp"}},
+    {"cat": "An ninh", "q": "Có nên dành cho người Bản địa một tiếng nói riêng (The Voice)?", "opts": {"A": "Có, tôn trọng chủ nhân đầu tiên của đất nước", "B": "Không, mọi người nên được đối xử giống nhau", "C": "Không, tập trung vào việc thực tế", "D": "Rất cần thiết để họ có quyền tự quyết"}},
+    {"cat": "An ninh", "q": "Nên xử lý các vấn đề về chất gây nghiện như thế nào?", "opts": {"A": "Coi là vấn đề y tế và hỗ trợ cai nghiện", "B": "Giữ lệnh cấm nhưng không phạt quá nặng", "C": "Phải phạt tù thật nặng để răn đe", "D": "Hợp pháp hóa và quản lý như thuốc lá"}},
+    {"cat": "An ninh", "q": "Chính phủ có nên bảo vệ các giá trị gia đình truyền thống?", "opts": {"A": "Không, đừng can thiệp lựa chọn cá nhân", "B": "Nên hỗ trợ tất cả các loại hình gia đình", "C": "Có, gia đình truyền thống là nền tảng", "D": "Tôn trọng sự đa dạng, không chỉ truyền thống"}},
+    {"cat": "An ninh", "q": "Có nên lắp đặt thêm nhiều camera giám sát (CCTV) công cộng?", "opts": {"A": "Không, làm người dân không thoải mái", "B": "Có, giúp cảnh sát phá án nhanh hơn", "C": "Có, cần thiết để giữ kỷ cương", "D": "Không, camera không giải quyết gốc rễ"}},
+    {"cat": "An ninh", "q": "Lịch sử nước Úc nên được giảng dạy theo hướng nào?", "opts": {"A": "Nhìn nhận khách quan cả những mặt tối", "B": "Tập trung vào những thành tựu vĩ đại", "C": "Giảng dạy lòng yêu nước và sự hy sinh", "D": "Ưu tiên lịch sử của người Bản địa"}},
 
-    # MÔI TRƯỜNG & CÔNG NGHỆ (ENVIRONMENT & TECH)
-    {"q": "Nguồn năng lượng nào là tốt nhất cho Nam Úc?", 
-     "opts": {"A": "Năng lượng gió và mặt trời", "B": "Kết hợp các nguồn điện có chi phí thấp nhất", "C": "Sử dụng than đá để bảo đảm nguồn điện ổn định", "D": "Chuyển sang 100% năng lượng tái tạo ngay lập tức"}},
-    {"q": "Chính phủ có nên dùng tiền thuế để hỗ trợ người dân mua xe điện?", 
-     "opts": {"A": "Có, để bảo vệ bầu không khí sạch", "B": "Không, nên để thị trường tự quyết định", "C": "Không, nên dùng tiền đó để giảm giá xăng dầu", "D": "Có, và nên cấm hoàn toàn xe xăng trong tương lai"}},
-    {"q": "Ba mẹ có ủng hộ việc xây dựng nhà máy điện hạt nhân tại Úc?", 
-     "opts": {"A": "Không, vì lo ngại về an toàn và chất thải", "B": "Có thể xem xét nếu giúp giảm tiền điện", "C": "Ủng hộ mạnh mẽ để Úc có nguồn năng lượng tự chủ", "D": "Tuyệt đối không, chỉ nên dùng năng lượng xanh"}},
-    {"q": "Có nên cấm sử dụng nhựa xài một lần (như ống hút, túi nilon)?", 
-     "opts": {"A": "Có, đây là việc cần thiết cho môi trường", "B": "Nên thực hiện từ từ để không gây khó khăn cho doanh nghiệp", "C": "Không nên cấm vì gây bất tiện cho đời sống", "D": "Cấm ngay lập tức và phạt nặng các công ty sản xuất"}},
-    {"q": "Nông dân có quyền tự do chặt cây trên đất của họ không?", 
-     "opts": {"A": "Không, cần bảo vệ cây xanh để chống biến đổi khí hậu", "B": "Có, họ có quyền quản lý tài sản cá nhân", "C": "Được phép, nếu họ cam kết trồng lại cây ở nơi khác", "D": "Không, mọi việc chặt cây phải được kiểm soát nghiêm ngặt"}},
-    {"q": "Ba mẹ nghĩ sao về việc xây dựng các trạm pin khổng lồ trữ điện?", 
-     "opts": {"A": "Là bước đi hiện đại và đúng đắn", "B": "Chỉ làm nếu việc đó thực sự giúp giảm giá điện", "C": "Không hiệu quả bằng việc xây nhà máy điện truyền thống", "D": "Rất ủng hộ, đây là chìa khóa để bỏ than đá"}},
-    {"q": "Nguồn nước sông Murray nên được ưu tiên cho ai?", 
-     "opts": {"A": "Ưu tiên bảo vệ hệ sinh thái dòng sông", "B": "Ưu tiên cho nông dân sản xuất thực phẩm", "C": "Giữ nước tối đa cho nhu cầu của người Nam Úc", "D": "Trả lại nước cho thiên nhiên để hồi sinh dòng sông"}},
-    {"q": "Có nên đánh thuế carbon đối với các nhà máy gây ô nhiễm?", 
-     "opts": {"A": "Có, để buộc họ phải chuyển sang sản xuất sạch", "B": "Không, vì sẽ làm tăng giá hàng hóa", "C": "Chỉ đánh thuế các công ty đa quốc gia", "D": "Rất đồng ý, tiền thuế đó nên dùng để trồng rừng"}},
-    {"q": "Có nên mở rộng khai thác khoáng sản (như Lithium) để làm pin?", 
-     "opts": {"A": "Có, để Úc dẫn đầu về công nghệ xanh", "B": "Có, vì tạo ra nhiều việc làm lương cao", "C": "Chỉ làm ở những nơi xa khu dân cư", "D": "Chỉ khai thác nếu không gây hại đến thiên nhiên"}},
-    {"q": "Nếu có thiên tai (như cháy rừng), ai nên chịu chi phí khắc phục?", 
-     "opts": {"A": "Chính phủ phải trích ngân sách hỗ trợ ngay", "B": "Mỗi cá nhân nên tự mua bảo hiểm cho tài sản của mình", "C": "Cộng đồng nên quyên góp hỗ trợ lẫn nhau", "D": "Các công ty gây ô nhiễm lớn phải đóng góp kinh phí"}}
+    # MÔI TRƯỜNG & CÔNG NGHỆ (21-30)
+    {"cat": "Môi trường", "q": "Nguồn năng lượng nào là tốt nhất cho Nam Úc?", "opts": {"A": "Năng lượng gió và mặt trời", "B": "Kết hợp các nguồn điện rẻ nhất", "C": "Sử dụng than đá bảo đảm ổn định", "D": "Chuyển sang 100% năng lượng tái tạo ngay"}},
+    {"cat": "Môi trường", "q": "Chính phủ có nên hỗ trợ tiền mua xe điện (EV)?", "opts": {"A": "Có, để bảo vệ bầu không khí sạch", "B": "Không, để thị trường tự quyết định", "C": "Không, nên dùng tiền giảm giá xăng dầu", "D": "Có, và cấm xe xăng trong tương lai"}},
+    {"cat": "Môi trường", "q": "Ba mẹ có ủng hộ xây nhà máy điện hạt nhân tại Úc?", "opts": {"A": "Không, vì lo ngại an toàn và chất thải", "B": "Có thể xem xét nếu giúp giảm tiền điện", "C": "Ủng hộ mạnh mẽ để Úc tự chủ năng lượng", "D": "Tuyệt đối không, chỉ dùng năng lượng xanh"}},
+    {"cat": "Môi trường", "q": "Có nên cấm nhựa xài một lần (ống hút, túi nilon)?", "opts": {"A": "Có, rất cần thiết cho môi trường", "B": "Nên làm từ từ để doanh nghiệp quen", "C": "Không nên cấm vì bất tiện", "D": "Cấm ngay và phạt nặng công ty sản xuất"}},
+    {"cat": "Môi trường", "q": "Nông dân có quyền tự do chặt cây trên đất của họ không?", "opts": {"A": "Không, cần bảo vệ rừng chống biến đổi khí hậu", "B": "Có, họ có quyền quản lý tài sản cá nhân", "C": "Được phép, nếu cam kết trồng lại cây", "D": "Không, phải được kiểm soát nghiêm ngặt"}},
+    {"cat": "Môi trường", "q": "Ba mẹ nghĩ sao về việc xây các trạm pin khổng lồ trữ điện?", "opts": {"A": "Là bước đi hiện đại và đúng đắn", "B": "Chỉ làm nếu giúp giảm giá điện", "C": "Không hiệu quả bằng điện truyền thống", "D": "Rất ủng hộ, đây là chìa khóa bỏ than đá"}},
+    {"cat": "Môi trường", "q": "Nguồn nước sông Murray nên được ưu tiên cho ai?", "opts": {"A": "Ưu tiên bảo vệ hệ sinh thái dòng sông", "B": "Ưu tiên cho nông dân sản xuất thực phẩm", "C": "Giữ tối đa cho người Nam Úc", "D": "Trả lại nước cho thiên nhiên"}},
+    {"cat": "Môi trường", "q": "Có nên đánh thuế carbon đối với nhà máy gây ô nhiễm?", "opts": {"A": "Có, để buộc họ chuyển sang điện sạch", "B": "Không, vì làm tăng giá hàng hóa", "C": "Chỉ đánh thuế các công ty đa quốc gia", "D": "Rất đồng ý, dùng tiền đó trồng rừng"}},
+    {"cat": "Môi trường", "q": "Có nên mở rộng khai thác khoáng sản (Lithium) làm pin?", "opts": {"A": "Có, để Úc dẫn đầu công nghệ xanh", "B": "Có, tạo nhiều việc làm lương cao", "C": "Chỉ làm ở xa khu dân cư", "D": "Chỉ khai thác nếu không hại thiên nhiên"}},
+    {"cat": "Môi trường", "q": "Nếu có thiên tai, ai nên chịu chi phí khắc phục?", "opts": {"A": "Chính phủ phải hỗ trợ ngay", "B": "Mỗi cá nhân nên tự mua bảo hiểm", "C": "Cộng đồng quyên góp giúp nhau", "D": "Các công ty ô nhiễm lớn phải đóng góp"}}
 ]
 
-# --- APP LOGIC ---
-def process_answer(choice):
+def process_answer(choice, category):
     st.session_state.scores[choice] += 1
-    st.session_state.history.append(choice)
+    st.session_state.sect_scores[category] += 1
+    st.session_state.history.append((choice, category))
     st.session_state.current_q += 1
 
 def go_back():
     if st.session_state.current_q > 0:
-        last_choice = st.session_state.history.pop()
+        last_choice, last_cat = st.session_state.history.pop()
         st.session_state.scores[last_choice] -= 1
+        st.session_state.sect_scores[last_cat] -= 1
         st.session_state.current_q -= 1
 
 # --- MAIN UI ---
 st.title("🗳️ Khảo sát Bầu cử Elder 2026")
-st.write("Dành cho Ba Mẹ: Hãy chọn ý kiến ba mẹ đồng ý nhất.")
 
 if st.session_state.current_q < len(questions):
-    # Progress Bar
-    progress = (st.session_state.current_q) / len(questions)
-    st.progress(progress)
-    st.write(f"Câu hỏi {st.session_state.current_q + 1} / 30")
-
-    # Question Display
     q_data = questions[st.session_state.current_q]
+    st.progress(st.session_state.current_q / len(questions))
+    st.write(f"Chủ đề: **{q_data['cat']}** | Câu {st.session_state.current_q + 1}/30")
     st.markdown(f'<p class="question-text">{q_data["q"]}</p>', unsafe_allow_html=True)
 
-    # Option Buttons
-    col1, col2 = st.columns(2)
-    options = list(q_data['opts'].items())
-    
-    # We display buttons in a grid for iPad readability
-    for key, val in options:
-        if st.button(val, key=f"q{st.session_state.current_q}_{key}"):
-            process_answer(key)
+    for key, val in q_data['opts'].items():
+        if st.button(val, key=f"btn_{st.session_state.current_q}_{key}"):
+            process_answer(key, q_data['cat'])
             st.rerun()
 
-    # Back Button
     st.divider()
     if st.button("← QUAY LẠI (BACK)", disabled=(st.session_state.current_q == 0)):
         go_back()
         st.rerun()
 
 else:
-    # --- FINAL RESULTS ---
     st.balloons()
     winner = max(st.session_state.scores, key=st.session_state.scores.get)
-    results_map = {
-        "A": "NADIA CLANCY (Đảng Lao Động - Labor)",
-        "B": "SHAWN VAN GROESEN (Đảng Tự Do - Liberal)",
-        "C": "MATTHEW MANGELSDORF (Một Quốc Gia - One Nation)",
-        "D": "STEF ROZITIS (Đảng Xanh - Greens)"
-    }
+    top_sect = max(st.session_state.sect_scores, key=st.session_state.sect_scores.get)
     
-    st.header("✨ Kết quả gợi ý cho Ba Mẹ")
-    st.success(f"### Ứng cử viên phù hợp nhất: {results_map[winner]}")
+    res_map = {"A": "NADIA CLANCY (Lao Động)", "B": "SHAWN VAN GROESEN (Tự Do)", "C": "MATTHEW MANGELSDORF (One Nation)", "D": "STEF ROZITIS (Đảng Xanh)"}
     
-    st.write("---")
-    st.subheader("📊 Biểu đồ chi tiết quan điểm của Ba Mẹ:")
+    st.header("✨ Kết quả dành cho Ba Mẹ")
+    st.success(f"### Ứng cử viên phù hợp nhất: {res_map[winner]}")
+    st.info(f"💡 Ba mẹ quan tâm nhiều nhất đến chủ đề: **{top_sect}**")
     
-    # Chart Data
-    chart_data = {
-        "Đảng": ["Lao Động", "Tự Do", "One Nation", "Đảng Xanh"],
-        "Số câu chọn": [
-            st.session_state.scores["A"], 
-            st.session_state.scores["B"], 
-            st.session_state.scores["C"], 
-            st.session_state.scores["D"]
-        ]
-    }
-    st.bar_chart(data=chart_data, x="Đảng", y="Số câu chọn")
-    
-    st.info("💡 Lưu ý: Đây là gợi ý dựa trên các câu trả lời. Ba mẹ có thể tùy chọn người mình tin tưởng nhất khi đi bầu.")
+    st.subheader("📊 Chi tiết quan điểm:")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.write("**Theo Đảng:**")
+        st.bar_chart({"Số câu": list(st.session_state.scores.values())}, x_label=["Lao Động", "Tự Do", "One Nation", "Đảng Xanh"])
+    with col2:
+        st.write("**Theo Chủ đề:**")
+        st.write(f"- Kinh tế: {st.session_state.sect_scores['Kinh tế']} câu")
+        st.write(f"- An ninh: {st.session_state.sect_scores['An ninh']} câu")
+        st.write(f"- Môi trường: {st.session_state.sect_scores['Môi trường']} câu")
 
-    if st.button("Làm lại khảo sát từ đầu"):
+    if st.button("Làm lại khảo sát"):
         st.session_state.current_q = 0
         st.session_state.scores = {"A": 0, "B": 0, "C": 0, "D": 0}
+        st.session_state.sect_scores = {"Kinh tế": 0, "An ninh": 0, "Môi trường": 0}
         st.session_state.history = []
-
         st.rerun()
